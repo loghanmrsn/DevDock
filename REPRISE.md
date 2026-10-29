@@ -25,26 +25,32 @@ Les contrôles couvrent sauvegarde/relecture, modification, favoris, recherche, 
 
 L'interface a également été rendue et sa capture inspectée. Le paquet **Linux** a été construit avec le fichier `DevDock.spec`, puis démarré hors écran dans un dossier de données temporaire : création de la bibliothèque et copie de l'exemple vérifiées. Ce paquet Linux est une vérification du packaging, pas un exécutable Windows.
 
-## Windows : reste à vérifier
+## Windows : validation automatique réussie
 
-Aucun exécutable Windows n'a été construit ou exécuté sur cette machine Linux. Le BAT, Explorer, l'affichage sur un vrai bureau Windows, SmartScreen et la fermeture interactive du binaire Windows restent à valider.
+Le workflow [40852783624](https://github.com/loghanmrsn/DevDock/actions/runs/40852783624), au commit `68c0c16`, a terminé avec **Success** le 29 octobre 2026.
 
-Le workflow `.github/workflows/windows.yml` utilise un runner Windows et Python 3.12 : tests réels, construction, démarrage hors écran du paquet, vérification de l'exemple et création de l'artefact `DevDock-Windows` contenant le ZIP. Le test de démarrage CI ne remplace pas une session interactive Windows. Le binaire n'est pas signé.
+- Les **16 tests** passent sur `windows-latest` avec Python 3.12 et la vraie interface Qt hors écran.
+- PyInstaller a construit `DevDock.exe` et toutes ses dépendances.
+- Le contrôle CI a lancé cet exécutable pendant 8 secondes dans un dossier de données temporaire et vérifié la bibliothèque et le projet exemple.
+- L'artefact **DevDock-Windows**, environ 47,5 Mo, a été publié. Il contient `DevDock-Windows.zip` ; extraire tout le dossier `DevDock`, et non uniquement l'exécutable.
+
+Le premier passage Windows avait révélé un problème dans une assertion de test : un chemin temporaire non résolu était comparé au chemin canonique enregistré. Les dossiers temporaires des tests sont désormais résolus avant comparaison ; la vérification de confinement de l'exemple reste active. Les tests Linux repassent après cette correction.
+
+**Reste à vérifier manuellement sur Windows :** le BAT, l'ouverture réelle d'Explorer et du navigateur, le rendu sur écran et DPI Windows, les avertissements SmartScreen et une session interactive du binaire avec fermeture normale. Le démarrage hors écran et les tests automatisés réussis ne remplacent pas ces essais. Le binaire n'est pas signé.
 
 ## Dépôt et publication
 
-Le dépôt `loghanmrsn/DevDock` existe déjà. Avant publication, `main` pointe vers `f1155708b6d0c767a4bb451a6216f45dc56530c4` et contient un fichier `Readme` vide, conservé. Le commit `ff369e8` de l'ancien contexte n'était pas présent ; cette version ne s'appuie pas dessus.
+Le dépôt public [loghanmrsn/DevDock](https://github.com/loghanmrsn/DevDock) existe. Les sources et le workflow ont été publiés sur `main` par un push normal, sans réécriture de l'historique. Le commit initial `f1155708b6d0c767a4bb451a6216f45dc56530c4` a été préservé dans l'historique. Une suppression distante du `Readme` vide (`9f5f52a`) a été intégrée par avance rapide, sans le rétablir. Le commit `ff369e8` de l'ancien contexte n'était pas présent ; cette version ne s'appuie pas dessus.
 
-La lecture Git distante fonctionne. L'accès à `https://api.github.com/repos/loghanmrsn/DevDock` par `gh api` est refusé dans l'environnement actuel ; le domaine API ne figure pas dans sa politique réseau. Sans accès à l'API, le suivi et la vérification de GitHub Actions ne peuvent pas être confirmés ici. Ne jamais transmettre de token dans le chat.
+La lecture et l'écriture Git fonctionnent. L'API `api.github.com` est refusée dans cet environnement ; les pages publiques GitHub Actions ont permis de suivre les exécutions. Le workflow publie les résultats des tests dans son résumé et les échecs dans ses annotations pour permettre le diagnostic. Aucun secret n'a été demandé ni inclus dans les livrables.
 
-Le résultat de la tentative de publication Git est consigné ci-dessous avant livraison.
+Le ZIP source est composé uniquement des fichiers suivis du projet, sans `.git`, `.venv`, caches, données personnelles ou secrets. Une extraction indépendante de ce ZIP a passé les **16 tests sous Linux** avec les dépendances déjà installées. Les retours de ligne du BAT dans le ZIP sont adaptés à Windows.
 
 ## Prochaines étapes
 
-1. Vérifier le résultat de publication ci-dessous. Si nécessaire, publier les sources avec `git push origin HEAD:main` depuis la racine du projet, sans forcer ni remplacer l'historique distant.
-2. Autoriser `api.github.com` dans les paramètres réseau si le suivi Actions doit se faire depuis cet environnement ; utiliser l'authentification GitHub déjà fournie.
-3. Consulter l'onglet Actions du dépôt, workflow **DevDock Windows**, puis récupérer l'artefact **DevDock-Windows** s'il réussit. Corriger les échecs à partir des journaux réels.
-4. Sur Windows, extraire tout le dossier, lancer le BAT puis le binaire, essayer deux aperçus, favoris, sauvegarde/relecture et fermeture complète. Vérifier aussi les chemins accentués et avec espaces.
-5. Éventuellement, ajouter des adaptateurs npm/Python/Godot. **Ces fonctionnalités ne sont pas présentes en v1.**
+1. Récupérer l'artefact **DevDock-Windows** depuis le [workflow réussi](https://github.com/loghanmrsn/DevDock/actions/runs/40852783624). GitHub peut demander une connexion pour télécharger les artefacts, même si le dépôt est public.
+2. Sur Windows, extraire tout le dossier, lancer le BAT puis le binaire, essayer deux aperçus, favoris, sauvegarde/relecture et fermeture complète. Vérifier aussi les chemins accentués et avec espaces.
+3. Consulter les journaux et annotations des futurs workflows si un nouveau changement échoue. Pour utiliser `gh` depuis cet environnement, l'accès à `api.github.com` doit être autorisé dans les paramètres réseau ; ne pas transmettre de token dans le chat.
+4. Éventuellement, ajouter des adaptateurs npm/Python/Godot. **Ces fonctionnalités ne sont pas présentes en v1.**
 
 Ne pas modifier Portfolio, SecurePass ou le README du profil pour reprendre DevDock.

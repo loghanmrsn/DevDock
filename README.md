@@ -22,7 +22,7 @@ Ne pas déplacer un environnement `.venv` entre machines. Si un ancien `.venv` u
 
 Le workflow GitHub Actions `DevDock Windows` construit une archive **DevDock-Windows.zip** contenant un dossier `DevDock` avec `DevDock.exe` et `_internal` (bibliothèques, Qt, thème et exemple). Extraire **tout le dossier**, puis lancer `DevDock.exe`. Python n'est pas nécessaire pour cette version. Ne pas déplacer l'exécutable seul.
 
-L'exécutable n'est pas signé. Windows peut présenter un avertissement SmartScreen. Aucune validation Windows ou archive Windows réussie n'est annoncée tant que le workflow n'a pas effectivement terminé ; voir `REPRISE.md` pour l'état vérifié.
+L'exécutable n'est pas signé. Windows peut présenter un avertissement SmartScreen. La construction, les 16 tests et un démarrage hors écran du binaire ont réussi sur le [runner Windows](https://github.com/loghanmrsn/DevDock/actions/runs/40852783624). Voir `REPRISE.md` pour les limites de cette validation automatique.
 
 ## Utiliser DevDock
 
@@ -54,7 +54,7 @@ La bibliothèque contient uniquement noms, chemins locaux, URL GitHub et favoris
 - Les fichiers du dossier sélectionné sont servis en HTTP local, accessibles aux processus locaux. Choisir uniquement un dossier web approprié ; pas un dossier de secrets. Les liens symboliques vers l'extérieur du projet sont refusés. Il n'y a ni authentification ni HTTPS sur ces serveurs locaux.
 - Les dossiers déplacés ou les disques déconnectés restent dans la bibliothèque ; il faut corriger leur chemin. Ils ne peuvent pas être prévisualisés tant qu'ils sont absents.
 - Pas d'import automatique des dépôts GitHub, de clone ou d'opérations Git.
-- Qt et le noyau sont testés sous Linux ; Explorer, le BAT, le rendu natif Windows, SmartScreen et le binaire Windows nécessitent leur validation sur Windows.
+- Qt et le noyau sont testés sous Linux et sur le runner Windows ; Explorer, le BAT, le rendu sur un bureau Windows, SmartScreen et une session interactive du binaire restent à vérifier manuellement.
 
 ## Développer et tester
 
