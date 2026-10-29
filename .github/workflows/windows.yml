@@ -1,0 +1,53 @@
+name: DevDock Windows
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Installer les dépendances
+        run: python -m pip install -r requirements.txt PyInstaller==6.12.0
+      - name: Tester le noyau et la vraie interface Qt
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s tests -v
+      - name: Construire
+        run: python -m PyInstaller --noconfirm --clean DevDock.spec
+      - name: Tester le démarrage du logiciel empaqueté
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'DevDock-Smoke'
+          $process = Start-Process -FilePath '.\dist\DevDock\DevDock.exe' -PassThru
+          try {
+            Start-Sleep -Seconds 8
+            if ($process.HasExited) { throw "DevDock s'est fermé au démarrage : $($process.ExitCode)" }
+            $library = Join-Path $env:LOCALAPPDATA 'DevDock\library.json'
+            if (!(Test-Path $library)) { throw 'La bibliothèque exemple est absente' }
+            $data = Get-Content -Raw $library | ConvertFrom-Json
+            if ($data.projects.Count -ne 1) { throw 'Projet exemple absent' }
+          } finally {
+            if (!$process.HasExited) { Stop-Process -Id $process.Id }
+          }
+      - name: Ajouter la documentation
+        shell: pwsh
+        run: Copy-Item README.md,REPRISE.md -Destination dist/DevDock/
+      - name: Archiver
+        shell: pwsh
+        run: Compress-Archive -Path dist/DevDock -DestinationPath dist/DevDock-Windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DevDock-Windows
+          path: dist/DevDock-Windows.zip
+          if-no-files-found: error
