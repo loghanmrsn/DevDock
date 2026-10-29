@@ -31,7 +31,7 @@ def wait_until(condition):
 class InterfaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.window = MainWindow(Library(self.root / 'data' / 'library.json'), seed_example=False)
         self.window.show()
         APP.processEvents()

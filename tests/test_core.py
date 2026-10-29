@@ -12,7 +12,7 @@ from core import CorruptLibraryError, Library, PreviewManager, github_url
 class CoreTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.library = Library(self.root / 'data' / 'library.json')
         self.site = self.root / 'site'
         self.site.mkdir()
