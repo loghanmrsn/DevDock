@@ -27,6 +27,9 @@ jobs:
           print(result.stdout)
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
               stream.write('## Tests Windows\n\n```text\n' + result.stdout + '\n```\n')
+          if result.returncode:
+              diagnostic = result.stdout[-16000:].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print('::error title=Tests Windows::' + diagnostic)
           sys.exit(result.returncode)
           '@ | python -
       - name: Construire
