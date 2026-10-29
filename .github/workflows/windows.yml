@@ -10,8 +10,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -20,7 +20,15 @@ jobs:
       - name: Tester le noyau et la vraie interface Qt
         env:
           QT_QPA_PLATFORM: offscreen
-        run: python -m unittest discover -s tests -v
+        run: |
+          @'
+          import os, subprocess, sys
+          result = subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-s', 'tests', '-v'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', errors='replace', env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
+          print(result.stdout)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
+              stream.write('## Tests Windows\n\n```text\n' + result.stdout + '\n```\n')
+          sys.exit(result.returncode)
+          '@ | python -
       - name: Construire
         run: python -m PyInstaller --noconfirm --clean DevDock.spec
       - name: Tester le démarrage du logiciel empaqueté
