@@ -162,6 +162,17 @@ class StaticHandler(SimpleHTTPRequestHandler):
         if not target.is_relative_to(Path(self.directory).resolve()):
             self.send_error(403, "Hors du dossier projet")
             return None
+        # SimpleHTTPRequestHandler choisit ensuite un index implicitement.
+        # Vérifier aussi cette cible, pas seulement le dossier de la requête.
+        if target.is_dir():
+            root = Path(self.directory).resolve()
+            for name in ("index.html", "index.htm"):
+                index = target / name
+                if index.is_file():
+                    if not index.resolve().is_relative_to(root):
+                        self.send_error(403, "Hors du dossier projet")
+                        return None
+                    break
         return super().send_head()
 
 
