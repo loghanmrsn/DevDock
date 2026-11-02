@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from core import CorruptLibraryError, Library, PreviewManager, github_url
@@ -119,6 +119,28 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(self.manager.running)
         with self.assertRaises((URLError, OSError)):
             urlopen(urls[1], timeout=1)
+
+    def test_directory_index_symlink_cannot_escape_project(self):
+        secret = self.root / 'private.txt'
+        secret.write_text('PRIVATE CONTENT', encoding='utf-8')
+        url = self.manager.start(self.add())
+        for index in ('index.html', 'index.htm'):
+            folder = self.site / index.replace('.', '-')
+            folder.mkdir()
+            try:
+                (folder / index).symlink_to(secret)
+            except OSError as exc:
+                self.skipTest(f'Symbolic links unavailable: {exc}')
+            for suffix in ('/', '/' + index):
+                with self.subTest(index=index, suffix=suffix):
+                    with self.assertRaises(HTTPError) as caught:
+                        urlopen(url + folder.name + suffix, timeout=3)
+                    self.assertEqual(caught.exception.code, 403)
+        safe = self.site / 'safe'
+        safe.mkdir()
+        (safe / 'index.html').write_text('SAFE INDEX', encoding='utf-8')
+        with urlopen(url + 'safe/', timeout=3) as response:
+            self.assertEqual(response.read(), b'SAFE INDEX')
 
     def test_launch_error_and_remove_preserve_files(self):
         p = self.add()
